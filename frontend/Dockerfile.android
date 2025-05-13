@@ -1,0 +1,22 @@
+# --- build web (igual hoje) ---
+FROM node:18-alpine AS web
+WORKDIR /app
+COPY frontend/ ./frontend
+RUN cd frontend && npm ci && npm run build && npm run export
+
+# --- gerar projeto Capacitor ---
+FROM node:18-alpine AS cap
+WORKDIR /app
+COPY frontend/ ./frontend
+COPY --from=web /app/frontend/out ./frontend/out
+RUN cd frontend && \
+    npm ci && \
+    npx cap sync android
+
+# --- Android SDK ---
+FROM ghcr.io/cirruslabs/android-sdk:34 AS android
+WORKDIR /work
+COPY --from=cap /app/frontend/android ./android
+RUN cd android && ./gradlew bundleRelease
+
+# AAB fica em /work/android/app/build/outputs/bundle/release/app-release.aab
