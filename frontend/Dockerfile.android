@@ -1,22 +1,22 @@
-# --- build web (igual hoje) ---
-FROM node:18-alpine AS web
+# --- build da versão web (Next.js exporta HTML estático) ---
+FROM node:20-alpine AS web
 WORKDIR /app
-COPY frontend/ ./frontend
-RUN cd frontend && npm ci && npm run build && npm run export
+COPY . .
+RUN npm install && npm run build
 
-# --- gerar projeto Capacitor ---
-FROM node:18-alpine AS cap
+# --- gera projeto Capacitor Android ---
+FROM node:20-alpine AS cap
 WORKDIR /app
-COPY frontend/ ./frontend
-COPY --from=web /app/frontend/out ./frontend/out
-RUN cd frontend && \
-    npm ci && \
+COPY . .
+COPY --from=web /app/out ./out
+RUN npm install && \
+    echo | npx cap init sonhai com.app.sonhai --web-dir=out && \
+    npx cap add android && \
     npx cap sync android
 
-# --- Android SDK ---
+# --- compilação com Android SDK ---
 FROM ghcr.io/cirruslabs/android-sdk:34 AS android
 WORKDIR /work
-COPY --from=cap /app/frontend/android ./android
+COPY --from=cap /app/android ./android
+COPY --from=web /app/out ./android/app/src/main/assets/public
 RUN cd android && ./gradlew bundleRelease
-
-# AAB fica em /work/android/app/build/outputs/bundle/release/app-release.aab

@@ -1,5 +1,5 @@
 # Imagem base com Node.js
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
@@ -10,14 +10,11 @@ COPY . .
 # Instala dependências do projeto
 RUN npm install
 
-# Instala as bibliotecas do Capacitor (opcional, para builds Android)
-RUN npm install @capacitor/core @capacitor/cli
-
 # Instala o servidor estático globalmente
 RUN npm install -g serve
 
 # Build e export do Next.js para HTML estático
-RUN npm run build && npm run export
+RUN npm run build
 
 # Expõe a porta do servidor
 EXPOSE 3000
