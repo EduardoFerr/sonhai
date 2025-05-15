@@ -1,4 +1,6 @@
 # Caminhos
+include .env.local
+export
 DIST_DIR=./dist
 AAB_PATH=$(DIST_DIR)/app-release.aab
 CONTAINER_ANDROID=sonhai-android
@@ -90,3 +92,17 @@ publish-playstore:
 		--skip_upload_images true \
 		--skip_upload_screenshots true && \
 	echo "📤 Upload do .aab para Google Play (track: internal) concluído!"
+
+install:
+	test -f $(AAB_PATH) || (echo "❌ Arquivo .aab não encontrado. Rode 'make release' primeiro."; exit 1)
+	test -f bundletool.jar || wget -q https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.15.6.jar -O bundletool.jar
+	test -f $(KEYSTORE_FILE) || keytool -genkey -v -keystore $(KEYSTORE_FILE) -alias $(KEYSTORE_ALIAS) -keyalg RSA -keysize 2048 -validity 10000 -storepass $(KEYSTORE_PASS) -keypass $(KEY_PASS) -dname "CN=Sonhai, OU=Dev, O=Sonhai, L=BR, S=DF, C=BR"
+	java -jar bundletool.jar build-apks \
+		--bundle=$(AAB_PATH) \
+		--output=$(DIST_DIR)/app.apks \
+		--ks=$(KEYSTORE_FILE) \
+		--ks-key-alias=$(KEYSTORE_ALIAS) \
+		--ks-pass=pass:$(KEYSTORE_PASS) \
+		--key-pass=pass:$(KEY_PASS) \
+		--mode=universal
+
