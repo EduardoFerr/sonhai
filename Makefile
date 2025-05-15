@@ -11,22 +11,26 @@ up:
 down:
 	docker compose down
 
-# Build do app Android
+# Build do app Android (via Docker)
 android:
 	docker compose up --build android
 
-# Copiar AAB do container
+# Copiar .aab do container
 copy-aab:
+	mkdir -p ./dist && sudo chown -R $$(id -u):$$(id -g) ./dist
 	docker cp $(CONTAINER_ANDROID):/work/android/app/build/outputs/bundle/release/app-release.aab $(AAB_PATH)
 
 # Build + copiar aab
 release: android copy-aab
 	@echo "✅ AAB salvo em: $(AAB_PATH)"
 
-# Limpar containers e build
+# Limpar containers, volumes e diretório dist
 clean:
 	docker compose down -v --remove-orphans
 	rm -rf $(DIST_DIR)
+
+clean-builder:
+	docker builder prune -f
 
 # Build específicos
 build-web:
@@ -51,7 +55,7 @@ upgrade-docker:
 		npm audit fix --force && \
 		echo '✅ Dependências atualizadas dentro do Docker.'"
 
-# Congelar as versões exatas
+# Congelar versões exatas com shrinkwrap
 freeze:
 	cd frontend && \
 	rm -f package-lock.json npm-shrinkwrap.json && \
@@ -59,12 +63,17 @@ freeze:
 	npm shrinkwrap && \
 	echo "🔒 Versões travadas com shrinkwrap."
 
-# Upgrade com commit automático
+# Upgrade + commit automático
 upgrade-commit: upgrade
 	cd frontend && \
 	git add package*.json && \
 	git commit -m "chore: upgrade de dependências" || echo "⚠️ Nenhuma mudança para commitar"
 
+# Preview estático (via serve)
+preview:
+	docker run --rm -v $(PWD)/frontend/out:/app -p 4000:4000 node:20-alpine sh -c "\
+		npm install -g serve && \
+		serve -s /app -l 4000"
 
 # Publicar .aab na Google Play (via Fastlane)
 publish-playstore:
@@ -79,4 +88,5 @@ publish-playstore:
 		--skip_upload_metadata true \
 		--skip_upload_changelogs true \
 		--skip_upload_images true \
-		--skip_upload_screenshots true
+		--skip_upload_screenshots true && \
+	echo "📤 Upload do .aab para Google Play (track: internal) concluído!"

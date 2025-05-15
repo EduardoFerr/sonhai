@@ -34,6 +34,7 @@ build/
 out/
 coverage/
 .husky/_/
+dist/*.aab
 
 # Environment files
 .env

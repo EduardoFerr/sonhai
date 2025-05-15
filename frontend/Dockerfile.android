@@ -4,19 +4,16 @@ WORKDIR /app
 COPY . .
 RUN npm install && npm run build
 
-# --- gera projeto Capacitor Android ---
-FROM node:20-alpine AS cap
-WORKDIR /app
-COPY . .
-COPY --from=web /app/out ./out
-RUN npm install && \
-    echo | npx cap init sonhai com.app.sonhai --web-dir=out && \
-    npx cap add android && \
-    npx cap sync android
-
 # --- compilação com Android SDK ---
 FROM ghcr.io/cirruslabs/android-sdk:34 AS android
 WORKDIR /work
-COPY --from=cap /app/android ./android
+
+# Copia o projeto incluindo a pasta android já existente
+COPY . .
+
+# Garante que os assets estáticos vão para o app Android
 COPY --from=web /app/out ./android/app/src/main/assets/public
+
+# Compila o .aab
 RUN cd android && ./gradlew bundleRelease
+RUN chown -R 1000:1000 /work/android/app/build/outputs
