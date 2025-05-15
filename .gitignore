@@ -39,6 +39,7 @@ dist/*.aab
 # Environment files
 .env
 .env.*.local
+.env.local
 
 # TypeScript
 *.tsbuildinfo
@@ -63,9 +64,14 @@ Desktop.ini
 # Git
 .git/
 
+#android/java
+*.jar
+*.jks
+
 # Others (ajustável conforme seu projeto)
 *.bak
 *.orig
 *.rej
 *.zip
-*.rar
+*.rar.env.local
+
