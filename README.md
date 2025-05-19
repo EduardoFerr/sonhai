@@ -1,4 +1,4 @@
-# 🌙 Sonha AI
+# MVP -🌙 Sonha AI
 
 Um diário de sonhos com inteligência artificial, que interpreta seus relatos com base em psicologia simbólica (Jung, Freud e esoterismo). Registre seus sonhos por data, receba interpretações e acesse seu histórico como uma agenda pessoal.
 
